@@ -1,0 +1,1 @@
+this is a control file to test the sequential_blastp.py code
