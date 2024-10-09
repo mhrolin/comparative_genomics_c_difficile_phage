@@ -1,6 +1,7 @@
-# Phageomics-lab-projects
-The phageomics lab at the dept. of Genetic Engineering & Biotechnology, SUST studies bacteriophages both computationally and in wet lab. So far, two computational projects have been completed and en route to 
-publication. This repository describes the in detail pipelines of these projects. A brief description of each project is given below.
+# Comparative genomics of _Clostridioides difficile_ (CD) phages
 
-## 1. Comparative genomics of _Clostridioides difficile_ (CD) phages
-   Utilizing the [inphared](https://github.com/RyanCook94/inphared) database all available CD phage genomes were extracted. Based on shared protein content phages were grouped into nine clusters without any singleton. Updated taxonomy was suggested for CD phages based on average nucleotide identity (ANI) among the phages, core genes within cluster members and proteomic phylogeny. Creation of three novel families, 23 new genera were proposed and elevation of currently assigned genera by ICTV to subfamilies.
+Utilizing the [inphared](https://github.com/RyanCook94/inphared) database all available CD phage genomes were extracted. Based on shared protein content phages were grouped into nine clusters without any singleton. An updated taxonomy was suggested for CD phages based on average nucleotide identity (ANI) among the phages, core genes within cluster members, and proteomic phylogeny. Creation of three novel families, 23 new genera were proposed and elevation of currently assigned genera by ICTV to subfamilies. Furthermore, endolysin and holin proteins were explored. Domain prediction and phylogenetic analysis revealed the diversity of the endolysin. Additionally, selection pressure analysis on endolysin and holin genes revealed highly purifying selection acting on the said genes.
+
+This repository aims to describe the whole methodology comprehensibly.
+If you find our pipeline useful, please cite our paper (currently under review).
+Read the preprint here: https://doi.org/10.1101/2024.07.10.602917 
