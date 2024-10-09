@@ -1,6 +1,6 @@
 # 1. Phage genome acquisition
 
-- [INPHARED](https://github.com/RyanCook94/inphared) is an excellent resource for acquiring sequenced phage genome data. We can navigate the date_data_excluding_refseq.tsv file in excel and use the filter and search function to get the information of our desired phage genomes. The description is sometimes ambiguous in species level, so, manual inspection may be required. Alternatively, if you are lazy like me, you can just skip opening the tsv file with nearly ~25K genome data and prefilter to get only the desired phage info by searching genus name (e.g.: escherichia/klebsiella) using [this](path) code.
+- [INPHARED](https://github.com/RyanCook94/inphared) is an excellent resource for acquiring sequenced phage genome data. We can navigate the date_data_excluding_refseq.tsv file in excel and use the filter and search function to get the information of our desired phage genomes. The description is sometimes ambiguous in species level, so, manual inspection may be required. Alternatively, if you are lazy like me, you can just skip opening the tsv file with nearly ~25K genome data and prefilter to get only the desired phage info by searching genus name (e.g.: escherichia/klebsiella) using [this](./python_codes/inphared_subset_extractor.py) code.
 
 ## 1.1. Extracting Fasta from NCBI entrez
 
@@ -43,9 +43,9 @@ pharokka.py -i [multifasta] -o [output_folder] -t [cpu threads] -m -s
 
 ## 1.5. Generating some basic statistical figure
 
-- From pharokka results, we should have a tsv file containing genome length, GC (%), and CDS density. We can add one additional attribute to the file which is no. of coding sequences (CDS) per genome. Using these data we can generate two figures - A scatterplot depicting genome length distribution and a correlation scatterplot of GC (%), no. of CDS, coding density in relation to genome length.
-    - The genome length scatterplot code is given in [this file](path).
-    - The correlation scatterplot code is given in [this file](path).
+- Pharokka generates a summary tsv file containing genome length, GC (%), and CDS density. We can add one additional attribute to the file which is no. of coding sequences (CDS) per genome. Using these data we can generate two figures - A scatterplot depicting genome length distribution and a correlation scatterplot of GC (%), no. of CDS, coding density in relation to genome length.
+    - The genome length scatterplot code is given in [here](./R_codes/length_scatterplot.R).
+    - The correlation scatterplot code is given in [here](./R_codes/scatter_corr_linear.R).
 
 # 2. Clustering the genomes
 
@@ -62,31 +62,31 @@ pharokka.py -i [multifasta] -o [output_folder] -t [cpu threads] -m -s
 seqkit split -i --id-regexp "(.*\.)" prodigal.faa
 ```
 - The output files may look a little weird with names like "prodigal.part_CP011970..faa", so they should be suitably renamed. If there are not hundreds of genomes, group rename should work - "ctrl + a" --> "F2", otherwise a simple python code may be needed.
-- Finally, we can now run phammseqs.
+- Finally, run phammseqs:
 ```bash
 phammseqs [path/to/the/proteomes] -p -c [cpu thread] -o [output_folder] --identity [value] --coverage [value]
 ```
 ## 2.2. Phamclust to cluster genomes
 
-- From the previous step (given that phammseqs ran with the flag "-p"; pangenome option enabled, we should get a file called "strain_genes.tsv". This is basically a genome to pham mapping file with protein sequences. This file would be our input file for running [phamclust](https://github.com/chg60/phamclust). Phamclust does have a workaround to this by providing a flag "-g" if the input is genome sequences. However, my system always returned an error whenever I tried to input genome FASTAs instead of the mapping file.
+- From the previous step (given that phammseqs ran with the flag "-p"; pangenome option enabled, we would get a file called "strain_genes.tsv". This is basically a genome to pham mapping file with protein sequences. This file would be our input file for running [phamclust](https://github.com/chg60/phamclust). Phamclust does have a workaround to this by providing a flag "-g" if the input is genome sequences. However, my system always returned an error whenever I tried to input genome FASTAs instead of the mapping file.
 ```bash
 phamclust [path/to/strain_genes.tsv] [output_folder] -n -r -c [value]
 ```
-- "-n" for no subclustering (exclude if your goal is to subcluster), "-r" removes intermediate files, "-c" similarity threshold
+- "-n" for no subclustering (exclude if your goal is to subcluster), "-r" removes intermediate files, "-c" similarity threshold.
 
 ## 2.3. Genome comparison figures
 
 - [gggenome](https://github.com/thackl/gggenomes) is a great tool for generating genome comparison figures or just genome maps. However, I have found the documentation to be a little difficult to understand. Here, I have tried to be as straightforward as I could. We can compare genomes from the same cluster to see how conserved they are or from different clusters to how dissimilar they are. Additionally, this can be a neat way to observe the mosaicism of phage genomes.
-- Prerequisites
+- Prerequisites:
     - FASTA files of genomes (optional, as the read function of gggenome can read the sequence information from the gff3 file)
     - GFF3 files
     - All vs all BLASTp result files to create links (indicates similarity) between genes
 - Genomes, if uploaded as a batch, are arranged in the figure alphabetically.
 - Based on that arrangement we can just do pairwise all vs all BLASTp. What I mean by that is
     - let's say A, B, C, and D are accessions of four genomes that are uploaded as batch
-    - the corresponding proteome files should also be named as accessions A, B, C, and D. If the proteome files are placed in the same folder, a simple [python] code is sufficient to run pairwise BLASTp without having to run the same command over and over.
+    - the corresponding proteome files should also be named as accessions A, B, C, and D. If the proteome files are placed in the same folder, a simple python [code](./python_codes/sequential_blastp.py) is sufficient to run pairwise BLASTp without having to run the same command over and over.
 
-- The codes to generate comparative genome figures are given [here](path).
+- The codes to generate comparative genome figures are given [here](./R_codes/synteny_cluster_wise.R).
 
 ## 2.4. Pangenome analysis
 
@@ -95,7 +95,7 @@ phamclust [path/to/strain_genes.tsv] [output_folder] -n -r -c [value]
 ```bash
 PIRATE -i [path to gff files] -o [output folder] -s 30,35 -a -r -t [cpu thread] -q
 ```
-- This is for 35% similarity. A gene is defined as a core gene if the gene is in 95 to 100% isolates in pirate, but this is usually dependent on the researcher.
+- This is for 35% similarity. A gene is defined as a core gene if the gene is in 95 to 100% isolates in pirate, but this is usually dependent on the researcher and the aspect of one's study.
 
 # 3. Phylogenetics
 
@@ -115,28 +115,28 @@ itolparser -i [table.tsv] -o [output_folder]
   
 ## 3.1. Generating a g2g file:
 
-- g2g file is structured like this - 'protein id','contig id','keywords'.
-- Protein ids should match the raw protein file's accessions as well.
+- g2g file is structured like this - 'protein id','contig id','keywords'. An [example file](./python_codes/gene2genome.csv) is given to provide a representation of a typical g2g file.
+- Protein ids in the g2g file should match the raw protein file's accessions as well.
 - We can start with "prodigal.faa" file. For example: an accession in "prodigal.faa" looks like this: ">CP011970.1_CDS_0003 portal protein", the g2g entry for this protein would be - CP011970.1_0003,CP011970.1,none.
 - If the file is not too large, we can get away without coding for it.
 - Open the file in text editor -> "ctrl+h" -> first replace the "_CDS" with empty string.
-- Click on the ".*" to opt for regex -> enter the regex " .*" (without quotes, space is included) to match everything after the space, replace with empty string, save the file (let's call it "prots.faa").
-- Now we extract the protein ids.
+- Click on the ".\*" to opt for regex -> enter the regex " .\*" (without quotes, space is included) to match everything after the space, replace with empty string, save the file (let's call it "prots.faa").
+- Extract the protein ids:
 ```bash
 grep ">" prots.faa > protein_ids.txt
 ```
-- Replace ">" in the protein_ids.txt file with empty string and save the file.
-- Now we can use this file to create contig_ids. Use the regex "_\d+$" (without quotes) to select the "_0001" portion and replace with empty string. Now we only have the contig_ids, save the file as contig_id.txt.
-- Combine the two files to create g2g
+   - replace ">" in the protein_ids.txt file with empty string and save the file.
+- This file can be used to create contig_ids. Use the regex "_\d+$" (without quotes) to select the "_0001" portion and replace with empty string. Now we only have the contig_ids, save the file as contig_id.txt.
+- Combine the two files to create g2g.
 ```bash
 paste -d ',' protein_ids.txt contig_ids.txt > g2g.txt
 ```
-- Add "protein_id,contig_id,keywords" as the first line. Finally, now we can run vcontact2 (phew!).
+- Add "protein_id,contig_id,keywords" as the first line. Finally, we can run vcontact2 (phew!).
 ```bash
 vcontact2 -r prots.faa -p g2g.csv --db None --c1-bin [path to clusterone.jar] -o [output_folder]
 ```
 - c1.ntw is a network file that can be visualized using [cytoscape](https://cytoscape.org/).
-- [this](https://www.protocols.io/view/applying-vcontact-to-viral-sequences-and-visualizi-kqdg3pnql25z/v5) is a good tutorial on how to visualize the network file.
+- [This](https://www.protocols.io/view/applying-vcontact-to-viral-sequences-and-visualizi-kqdg3pnql25z/v5) is a good tutorial on how to visualize the network file.
 - Additionally, [this](https://github.com/miriamposner/cytoscape_tutorials) repository offers basic introduction to cytoscape.
 
 # 4. Exploring Endolysins and Holins
@@ -148,7 +148,7 @@ diamond makedb --in [reference_sequence_database.faa] -d reference_db
 diamond blastp -d reference_db -q prodigal.faa --id 30 -k 1 -p 4 -o matches.tsv -f 6 qseqid full_qseq qlen sseqid slen pident nident length evalue --ultra-sensitive
 ```
 - We used less stringent parameters to extract all possible endolysin sequences. Still, there were endolysins that we could not extract using diamond. 
-- Thus in addition to diamond, we can use another approach, in step 2.1, we assorted proteins into groups of homologs or phams. A little manual search using 'grep' can give us the phams of endolysins.
+- Thus in addition to diamond, we can use another approach. In step 2.1, we assorted proteins into groups of homologs or phams. A little manual search using 'grep' can give us the phams of endolysins.
 ```bash
 grep "endolysin" pham_fastas/*.faa > endolysin_phams.txt
 ```
@@ -161,14 +161,14 @@ xargs -a pham_list.txt -I {} cp pham_fastas/{} /destination/folder
 ```bash
 cat endolysin_phams/*.faa > all_endolysins.faa
 ```
-- Same exact steps can be run for holins as well
+- Same exact steps can be run for holins as well.
   
 ## 4.1. Domain prediction
 
 - The most straightforward way to predict domains is using [DAVI](http://genome.lcqb.upmc.fr/Domain-Architecture-Viewer/help.php)
 - DAVI may fail to identify some domains. Another way to predict domains is to use [Hmmer](https://www.ebi.ac.uk/Tools/hmmer/).
 - If you have a lot of sequences, using local hmmer suite may serve your purpose better.
-- We'll need Pfam-A.hmm; hmm profiles of pfam database to run "hmmscan" program. The file can be downloaded from [here](https://ftp.ebi.ac.uk/pub/databases/Pfam/releases/).
+- For that we'll need Pfam-A.hmm; hmm profiles of pfam database to run "hmmscan" program. The file can be downloaded from [here](https://ftp.ebi.ac.uk/pub/databases/Pfam/releases/).
 - We can run domain prediction using the following commands:
 ```bash
 hmmpress Pfam-A.hmm
@@ -183,13 +183,18 @@ hmmscan --domtblout [file_name] --noali Pfam-A.hmm all_endolysins.faa
     - tree builder -> iqtree_bestmodel
 - The resulting tree can be annotated using the previously described method discussed in section 3.
 - For selection pressure analysis we can utilize the [datamonkey](https://www.datamonkey.org/) server.
-- We need the genes for this step. We can use grep to get the accessions and save them as a list. Using seqkit, we can get the gene sequences. We extracted the endolysins from "prodigal.faa" file, generated from pharokka annotation. Similarly, pharokka generates "prodigal.ffn" that contains the gene sequences.
+- We need the genes for this step. We can use grep to get the accessions from a particular pham and save them as a list. Using seqkit, we can get the gene sequences. Previously, we extracted the endolysins from "prodigal.faa" file, generated from pharokka annotation. Similarly, pharokka generates "prodigal.ffn" that contains the gene sequences.
 ```bash
 seqkit grep -n -f [accession.txt] -o [output_filename] prodigal.ffn
 ```
 - The gene sequences need some preprocessing before we can go ahead with observing selection pressure. The preprocessing includes removing stop codons and cleaning the alignment.
-- We can utilize the [Macse](https://www.agap-ge2pop.org/macse/) program to generate alignments.
+- We can utilize the [Macse](https://www.agap-ge2pop.org/macse/) program to generate codon aware alignments.
 - Then, use [trimal](https://github.com/inab/trimal) to clean the alignment.
 ```bash
 trimal -in [input_alignment_file] -out [output_folder] -gappyout #cd to trimal main folder if not installed in the system, use './' (w/o quotes) before calling trimal [applicable for some other programs as well]
 ```
+
+
+
+
+### P.S. All codes, data used to run the codes and some results are included in the repository.
